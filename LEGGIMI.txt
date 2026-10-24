@@ -7,7 +7,7 @@ WINDOWS, SUBITO (senza installare niente)
 1. Copia la cartella "TassaSoggiorno-Web" sul PC (per esempio nei Documenti).
 2. Fai doppio clic su "index.html": si apre in Edge o Chrome.
 3. Per averla sempre a portata: tasto destro su index.html > Invia a > Desktop (crea collegamento).
-4. Impostazioni > Importa backup... e scegli il file 2026.json (o un backup fatto dal Mac).
+4. Impostazioni > Importa backup... e scegli il tuo file di backup (per esempio quello fatto dal Mac).
 
 PC E MAC CON GLI STESSI DATI (facoltativo)
 In Impostazioni > File dati condiviso > "Collega un file esistente..." scegli il file dati.json
