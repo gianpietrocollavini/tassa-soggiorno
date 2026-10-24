@@ -1,0 +1,15 @@
+{
+  "name": "Tassa di soggiorno",
+  "short_name": "Tassa soggiorno",
+  "description": "Registro dei soggiorni e calcolo dell'imposta di soggiorno",
+  "lang": "it",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f3f5f9",
+  "theme_color": "#1a4480",
+  "icons": [
+    { "src": "icone/icona-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icone/icona-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

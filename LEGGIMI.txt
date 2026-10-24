@@ -1,0 +1,25 @@
+TASSA DI SOGGIORNO - versione per Windows, iPad e tablet Android
+
+Cosa c'è qui: un'app che si apre nel browser (Edge, Chrome, Safari) e funziona anche senza internet.
+Calcoli, Modello 21, riepilogo Agenzia Entrate e backup .json sono gli stessi dell'app per Mac.
+
+WINDOWS, SUBITO (senza installare niente)
+1. Copia la cartella "TassaSoggiorno-Web" sul PC (per esempio nei Documenti).
+2. Fai doppio clic su "index.html": si apre in Edge o Chrome.
+3. Per averla sempre a portata: tasto destro su index.html > Invia a > Desktop (crea collegamento).
+4. Impostazioni > Importa backup... e scegli il file 2026.json (o un backup fatto dal Mac).
+
+PC E MAC CON GLI STESSI DATI (facoltativo)
+In Impostazioni > File dati condiviso > "Collega un file esistente..." scegli il file dati.json
+che l'app per Mac tiene nella cartella di Google Drive. Da lì PC e Mac salvano nello stesso file.
+Non tenerla aperta su due computer nello stesso momento.
+
+iPAD E TABLET ANDROID
+Servono un indirizzo web (l'app va messa online una volta; i dati restano sul tablet, non vanno online).
+- iPad: apri l'indirizzo in Safari > tasto Condividi > "Aggiungi alla schermata Home".
+- Android: apri l'indirizzo in Chrome > menu ⋮ > "Installa app".
+Dopo, l'app si apre dall'icona e funziona anche senza internet.
+
+IMPORTANTE
+I dati restano solo sul dispositivo dove li inserisci. Ogni tanto premi "Scarica backup"
+(l'app te lo ricorda ogni 30 giorni) e conserva il file su Google Drive.

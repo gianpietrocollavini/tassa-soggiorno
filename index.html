@@ -1,0 +1,956 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tassa di soggiorno</title>
+<meta name="description" content="Registro dei soggiorni e calcolo dell'imposta di soggiorno, con Modello 21 e riepilogo per l'Agenzia delle Entrate.">
+<meta name="theme-color" content="#1a4480">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Tassa soggiorno">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icone/icona-32.png" type="image/png">
+<link rel="apple-touch-icon" href="icone/icona-180.png">
+<style>
+  :root {
+    --blue: #1a4480; --blue2: #2b6cb0; --gold: #c8961e; --gold-bg: #fdf3d8;
+    --bg: #f3f5f9; --card: #fff; --text: #1d2433; --muted: #6b7385; --line: #dfe3ea;
+    --danger: #b42318; --ok: #1d7a46; --radius: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #11151c; --card: #1a2029; --text: #e7eaf0; --muted: #98a0b0; --line: #2c3442; --gold-bg: #3a2f14; }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text);
+         font-size: 16px; -webkit-text-size-adjust: 100%; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  header.top { background: linear-gradient(180deg, var(--blue2), var(--blue)); color: #fff;
+               padding: calc(env(safe-area-inset-top) + 10px) 16px 0; position: sticky; top: 0; z-index: 5; }
+  .brand { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .brand img { width: 40px; height: 40px; border-radius: 9px; box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+  .brand h1 { font-size: 18px; margin: 0; line-height: 1.2; }
+  .brand small { display: block; font-weight: normal; opacity: .8; font-size: 13px; }
+  .brand .spacer { flex: 1; }
+  .brand select { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.4); color: #fff; border-radius: 8px;
+                  padding: 6px 10px; font-weight: 600; }
+  .brand select option { color: #000; }
+  nav.tabs { display: flex; gap: 2px; overflow-x: auto; margin-top: 10px; scrollbar-width: none; }
+  nav.tabs button { background: none; border: 0; color: rgba(255,255,255,.8); padding: 10px 14px; border-radius: 10px 10px 0 0;
+                    white-space: nowrap; cursor: pointer; font-weight: 600; }
+  nav.tabs button.on { background: var(--bg); color: var(--text); }
+  main { padding: 16px; max-width: 1100px; margin: 0 auto; padding-bottom: calc(env(safe-area-inset-bottom) + 40px); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; }
+  .card h2 { font-size: 17px; margin: 0 0 12px; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .grow { flex: 1; min-width: 160px; }
+  .btn { border: 1px solid var(--line); background: var(--card); padding: 9px 14px; border-radius: 9px; cursor: pointer; font-weight: 600; }
+  .btn.primary { background: var(--blue2); border-color: var(--blue2); color: #fff; }
+  .btn.danger { color: var(--danger); }
+  .btn:disabled { opacity: .5; cursor: default; }
+  input[type=text], input[type=search], input[type=date], input[type=number], textarea, select.field {
+    border: 1px solid var(--line); background: var(--card); border-radius: 9px; padding: 9px 10px; width: 100%; }
+  label.f { display: block; font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+  label.f > input, label.f > textarea { margin-top: 4px; color: var(--text); font-size: 16px; }
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0 16px; }
+  .tablewrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table.t { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  table.t th, table.t td { padding: 9px 8px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+  table.t th { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .02em; cursor: default; }
+  table.t th.sort { cursor: pointer; }
+  table.t th:first-child, table.t td:first-child { text-align: left; }
+  table.t td.l, table.t th.l { text-align: left; }
+  table.t tr.click { cursor: pointer; }
+  table.t tr.click:hover td { background: rgba(43,108,176,.07); }
+  table.t tr.tot td { font-weight: 700; border-top: 2px solid var(--line); }
+  table.t tr.zero td { color: var(--muted); }
+  .muted { color: var(--muted); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .tile { border-radius: var(--radius); padding: 14px; background: var(--card); border: 1px solid var(--line); }
+  .tile .k { font-size: 13px; color: var(--muted); }
+  .tile .v { font-size: 24px; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; color: var(--blue2); }
+  .tile.main { background: linear-gradient(180deg, var(--blue2), var(--blue)); border: 0; }
+  .tile.main .k { color: rgba(255,255,255,.85); } .tile.main .v { color: #fff; }
+  .chart { display: flex; align-items: flex-end; gap: 6px; height: 170px; padding-top: 18px; }
+  .chart .col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; min-width: 0; }
+  .chart .bar { width: 100%; max-width: 44px; background: linear-gradient(180deg, var(--blue2), var(--blue)); border-radius: 5px 5px 0 0; min-height: 1px; }
+  .chart .lab { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .chart .val { font-size: 10px; color: var(--muted); margin-bottom: 2px; white-space: nowrap; }
+  .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(440px, 1fr)); gap: 16px; }
+  .banner { border-radius: var(--radius); padding: 12px 14px; margin-bottom: 16px; background: var(--gold-bg); border: 1px solid var(--gold); }
+  .banner b { display: block; margin-bottom: 4px; }
+  .empty { text-align: center; padding: 30px 10px; color: var(--muted); }
+  dialog { border: 0; border-radius: 16px; padding: 0; width: min(480px, calc(100vw - 24px)); background: var(--card); color: var(--text);
+           box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+  dialog::backdrop { background: rgba(10,20,40,.45); }
+  dialog .body { padding: 18px; max-height: 80vh; overflow-y: auto; }
+  dialog h3 { margin: 0 0 14px; font-size: 19px; }
+  dialog .actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; margin-top: 14px; }
+  .calc { background: var(--bg); border-radius: 10px; padding: 12px; font-variant-numeric: tabular-nums; }
+  .calc div { display: flex; justify-content: space-between; padding: 2px 0; }
+  .calc .big { font-size: 20px; font-weight: 700; color: var(--blue2); }
+  .err { color: var(--danger); font-size: 14px; min-height: 1.2em; margin-top: 8px; }
+  .stepper { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+  .stepper button { width: 40px; height: 40px; border-radius: 9px; border: 1px solid var(--line); background: var(--card); font-size: 20px; cursor: pointer; }
+  .stepper input { width: 70px; text-align: center; }
+  .sheet { background: #fff; color: #000; border-radius: 6px; padding: 18px; overflow-x: auto; box-shadow: 0 1px 4px rgba(0,0,0,.15); }
+  .rules input { width: 100px; }
+  #toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 20px); transform: translateX(-50%); background: #1d2433; color: #fff;
+           padding: 10px 16px; border-radius: 10px; opacity: 0; transition: opacity .25s; pointer-events: none; z-index: 50; max-width: 90vw; }
+  #toast.on { opacity: .95; }
+  #print-area { display: none; }
+
+  /* Documenti stampabili */
+  .doc-m21 { font-family: "Courier New", Courier, monospace; font-size: 9pt; color: #000; min-width: 760px; }
+  .doc-m21 h1 { font-size: 12pt; text-align: center; margin: 0 0 8px; }
+  .doc-m21 .head { display: flex; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 6px; }
+  .doc-m21 .head > div { width: 48%; } .doc-m21 .head .ente { text-align: right; }
+  .doc-m21 table { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
+  .doc-m21 th, .doc-m21 td { border: 1px solid #000; padding: 2px 4px; vertical-align: middle; }
+  .doc-m21 th { background: #f0f0f0; }
+  .doc-m21 .c { text-align: center; } .doc-m21 .r { text-align: right; }
+  .doc-m21 .sub td { background: #e0e0e0; font-weight: bold; }
+  .doc-m21 .tot td { background: #ddd; font-weight: bold; font-size: 10pt; }
+  .doc-m21 .foot { margin-top: 12px; border: 2px solid #000; padding: 8px; display: flex; justify-content: space-between; }
+  .doc-m21 .foot > div { width: 48%; }
+  .doc-ae { font-family: Helvetica, Arial, sans-serif; font-size: 11pt; color: #000; min-width: 520px; }
+  .doc-ae table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  .doc-ae th, .doc-ae td { border: 1px solid #bbb; padding: 6px 8px; }
+  .doc-ae th { background: #f2f2f2; }
+  .doc-ae .info td { border: none; padding: 3px 0; }
+  .doc-ae .c { text-align: center; } .doc-ae .r { text-align: right; }
+  .doc-ae .tot td { font-weight: bold; background: #eee; }
+  .doc-ae .note { font-size: 9pt; color: #444; margin-top: 12px; }
+
+  @media print {
+    body.printing > *:not(#print-area) { display: none !important; }
+    body.printing #print-area { display: block; }
+    body.printing { background: #fff; }
+    .doc-m21, .doc-ae { min-width: 0; }
+  }
+</style>
+<style id="page-style"></style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <img src="icone/icona-192.png" alt="">
+    <h1><span id="title">Tassa di soggiorno</span><small id="subtitle">Imposta di soggiorno</small></h1>
+    <span class="spacer"></span>
+    <label><span class="muted" style="color:rgba(255,255,255,.8);font-size:13px">Anno </span><select id="year"></select></label>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button data-tab="stays" class="on">Soggiorni</button>
+    <button data-tab="summary">Riepilogo</button>
+    <button data-tab="m21">Modello 21</button>
+    <button data-tab="ae">Agenzia Entrate</button>
+    <button data-tab="settings">Impostazioni</button>
+  </nav>
+</header>
+<main id="main"></main>
+<div id="print-area"></div>
+<div id="toast"></div>
+
+<dialog id="stay-dlg">
+  <form class="body" method="dialog" id="stay-form" autocomplete="off">
+    <h3 id="stay-title">Nuovo soggiorno</h3>
+    <label class="f">Nome cliente<input type="text" id="f-name" required></label>
+    <div class="grid2" style="grid-template-columns:1fr 1fr">
+      <label class="f">Check-in<input type="date" id="f-in" required></label>
+      <label class="f">Check-out<input type="date" id="f-out" required></label>
+    </div>
+    <div class="grid2" style="grid-template-columns:1fr 1fr">
+      <label class="f">Persone
+        <span class="stepper"><button type="button" data-step="f-people:-1">−</button><input type="number" id="f-people" min="1" max="50" inputmode="numeric"><button type="button" data-step="f-people:1">+</button></span>
+      </label>
+      <label class="f">di cui esenti
+        <span class="stepper"><button type="button" data-step="f-exempt:-1">−</button><input type="number" id="f-exempt" min="0" max="50" inputmode="numeric"><button type="button" data-step="f-exempt:1">+</button></span>
+      </label>
+    </div>
+    <label class="f">Note<textarea id="f-notes" rows="2"></textarea></label>
+    <div class="calc" id="f-calc"></div>
+    <div class="err" id="f-err"></div>
+    <div class="actions">
+      <button type="button" class="btn danger" id="f-delete" style="margin-right:auto">Elimina</button>
+      <button type="button" class="btn" id="f-cancel">Annulla</button>
+      <button type="submit" class="btn primary" id="f-save">Aggiungi</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="ask-dlg">
+  <div class="body">
+    <h3 id="ask-title"></h3>
+    <p id="ask-text" class="muted" style="margin-top:0"></p>
+    <div class="actions" id="ask-actions"></div>
+  </div>
+</dialog>
+
+<input type="file" id="file-in" accept=".json,application/json" hidden>
+
+<script>
+"use strict";
+
+// ---------------------------------------------------------------------------
+// Dati. Stesso formato dell'app per Mac (dati.json): { stays, rules, structure }.
+// I backup sono l'elenco dei soggiorni, compatibile anche col vecchio programma HTML.
+// Le date si tengono come testo "aaaa-mm-gg": nessun fuso orario può spostare il giorno.
+// Gli importi si calcolano in centesimi interi, così non ci sono arrotondamenti.
+// ---------------------------------------------------------------------------
+
+const STORE_KEY = "tassaSoggiorno.dati";
+const BACKUPS_KEY = "tassaSoggiorno.backup";
+const LAST_EXPORT_KEY = "tassaSoggiorno.ultimoBackup";
+
+const DEFAULT_RULES = [
+  { fromYear: 2000, rate: 1, maxNights: 3 },
+  { fromYear: 2026, rate: 1.5, maxNights: 5 },
+];
+const STRUCTURE_FIELDS = [
+  ["nomeStruttura", "Nome della struttura"],
+  ["gestore", "Gestore"],
+  ["legaleRappresentante", "Legale rappresentante"],
+  ["indirizzo", "Indirizzo completo"],
+  ["codiceFiscale", "Codice fiscale"],
+  ["partitaIva", "Partita IVA"],
+  ["ateco", "Codice ATECO"],
+  ["pec", "PEC"],
+  ["comune", "Comune (ente che riceve l'imposta)"],
+];
+const MONTHS = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
+                "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
+const QUARTERS = ["I Trimestre", "II Trimestre", "III Trimestre", "IV Trimestre"];
+const SEMESTERS = ["1° Semestre (gen–giu)", "2° Semestre (lug–dic)"];
+
+function emptyStructure() {
+  return Object.fromEntries(STRUCTURE_FIELDS.map(([k]) => [k, ""]));
+}
+
+let data = { stays: [], rules: DEFAULT_RULES.map(r => ({ ...r })), structure: emptyStructure() };
+let year = new Date().getFullYear();
+let tab = "stays";
+let search = "";
+let sortBy = { key: "checkIn", dir: 1 };
+
+// --- Date --------------------------------------------------------------------
+
+const todayISO = () => { const d = new Date(); return iso(d.getFullYear(), d.getMonth() + 1, d.getDate()); };
+const pad = (n, w = 2) => String(n).padStart(w, "0");
+const iso = (y, m, d) => `${pad(y, 4)}-${pad(m)}-${pad(d)}`;
+const parts = s => s.split("-").map(Number);
+const utc = s => { const [y, m, d] = parts(s); return Date.UTC(y, m - 1, d); };
+const addDays = (s, n) => new Date(utc(s) + n * 86400000).toISOString().slice(0, 10);
+const daysBetween = (a, b) => Math.round((utc(b) - utc(a)) / 86400000);
+const yearOf = s => parts(s)[0];
+const monthOf = s => parts(s)[1];
+const italian = s => { const [y, m, d] = parts(s); return `${pad(d)}/${pad(m)}/${y}`; };
+
+/** Accetta "aaaa-mm-gg" con o senza ora in coda, come l'app per Mac. */
+function parseDay(v) {
+  if (typeof v !== "string") return null;
+  const p = v.slice(0, 10).split("-").map(Number);
+  if (p.length !== 3 || p.some(isNaN) || p[1] < 1 || p[1] > 12 || p[2] < 1 || p[2] > 31) return null;
+  return iso(p[0], p[1], p[2]);
+}
+
+// --- Importi -------------------------------------------------------------------
+
+const nf = new Intl.NumberFormat("it-IT", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const amount = cents => nf.format(cents / 100);
+const euro = cents => "€ " + amount(cents);
+
+// --- Calcolo dell'imposta (stesse regole dell'app per Mac) ---------------------
+// - il limite di notti tassabili dipende dall'anno del check-in;
+// - sono tassabili le prime N notti del soggiorno;
+// - ogni notte si paga con la tariffa dell'anno in cui cade;
+// - ogni notte viene attribuita al mese in cui cade.
+
+function rule(y) {
+  const valid = data.rules.filter(r => r.fromYear <= y);
+  const pool = valid.length ? valid : data.rules;
+  if (!pool.length) return DEFAULT_RULES[0];
+  return pool.reduce((a, b) => valid.length ? (b.fromYear > a.fromYear ? b : a) : (b.fromYear < a.fromYear ? b : a));
+}
+const rateCents = r => Math.round(Number(r.rate) * 100);
+const nights = s => Math.max(0, daysBetween(s.checkIn, s.checkOut));
+const taxablePeople = s => Math.max(0, s.numPeople - s.exemptPeople);
+const taxableNights = s => Math.min(nights(s), rule(yearOf(s.checkIn)).maxNights);
+const touches = (s, y) => nights(s) > 0 && yearOf(s.checkIn) <= y && yearOf(addDays(s.checkOut, -1)) >= y;
+
+function breakdown(s) {
+  const limit = taxableNights(s), out = [];
+  for (let i = 0; i < nights(s); i++) {
+    const night = addDays(s.checkIn, i);
+    const taxable = i < limit ? taxablePeople(s) : 0;
+    out.push({ night, presenze: s.numPeople, tassabili: taxable, cents: taxable * rateCents(rule(yearOf(night))) });
+  }
+  return out;
+}
+const zero = () => ({ presenze: 0, tassabili: 0, cents: 0 });
+const add = (a, b) => ({ presenze: a.presenze + b.presenze, tassabili: a.tassabili + b.tassabili, cents: a.cents + b.cents });
+const sum = list => list.reduce(add, zero());
+const stayTotals = s => sum(breakdown(s));
+
+function monthly(y) {
+  const m = Array.from({ length: 12 }, zero);
+  for (const s of data.stays) {
+    if (!touches(s, y)) continue;
+    for (const n of breakdown(s)) if (yearOf(n.night) === y) m[monthOf(n.night) - 1] = add(m[monthOf(n.night) - 1], n);
+  }
+  return m;
+}
+const quarterly = y => { const m = monthly(y); return [0, 1, 2, 3].map(q => sum(m.slice(q * 3, q * 3 + 3))); };
+const semesters = y => { const m = monthly(y); return [sum(m.slice(0, 6)), sum(m.slice(6))]; };
+
+// --- Normalizzazione e formato file -----------------------------------------------
+
+function uuid() {
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID().toUpperCase();
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0; return (c === "x" ? r : (r & 3 | 8)).toString(16);
+  }).toUpperCase();
+}
+
+function toStay(r) {
+  const checkIn = parseDay(r.checkIn), checkOut = parseDay(r.checkOut);
+  if (!checkIn || !checkOut || typeof r.name !== "string") throw new Error("soggiorno non valido");
+  const people = Math.max(1, parseInt(r.numPeople, 10) || 1);
+  return {
+    id: typeof r.id === "string" && r.id ? r.id.toUpperCase() : uuid(),
+    name: r.name.trim(),
+    checkIn, checkOut,
+    numPeople: people,
+    exemptPeople: Math.min(Math.max(0, parseInt(r.exemptPeople, 10) || 0), people),
+    notes: typeof r.notes === "string" ? r.notes : "",
+  };
+}
+
+/** Un soggiorno come lo scrive l'app per Mac (e come lo legge il vecchio programma). */
+function toRecord(s) {
+  const r = { checkIn: s.checkIn + "T00:00:00.000Z", checkOut: s.checkOut + "T00:00:00.000Z",
+              exemptPeople: s.exemptPeople, id: s.id, name: s.name, numPeople: s.numPeople,
+              taxableNights: taxableNights(s), totalNights: nights(s) };
+  if (s.notes) r.notes = s.notes;
+  return r;
+}
+
+const sortStays = list => list.sort((a, b) => a.checkIn < b.checkIn ? -1 : a.checkIn > b.checkIn ? 1 : a.name.localeCompare(b.name));
+
+/** Legge sia l'elenco del vecchio programma / backup, sia il file dati completo dell'app per Mac. */
+function parseFile(text) {
+  const j = JSON.parse(text);
+  if (Array.isArray(j)) return { stays: j.map(toStay) };
+  if (j && Array.isArray(j.stays)) {
+    const out = { stays: j.stays.map(toStay) };
+    if (Array.isArray(j.rules) && j.rules.length) out.rules = j.rules.map(normRule);
+    if (j.structure && typeof j.structure === "object") out.structure = normStructure(j.structure);
+    return out;
+  }
+  throw new Error("formato sconosciuto");
+}
+const normRule = r => ({ fromYear: parseInt(r.fromYear, 10) || 2000, rate: Number(r.rate) || 0, maxNights: Math.max(0, parseInt(r.maxNights, 10) || 0) });
+function normStructure(s) {
+  const out = emptyStructure();
+  for (const k in out) if (typeof s[k] === "string") out[k] = s[k];
+  return out;
+}
+
+/** File dati completo, leggibile dall'app per Mac (chiavi in ordine alfabetico come lì). */
+function appDataJSON() {
+  const structure = {};
+  for (const k of Object.keys(data.structure).sort()) structure[k] = data.structure[k];
+  return JSON.stringify({
+    rules: data.rules.map(r => ({ fromYear: r.fromYear, maxNights: r.maxNights, rate: r.rate })),
+    stays: data.stays.map(toRecord),
+    structure,
+  }, null, 2);
+}
+const backupJSON = () => JSON.stringify(data.stays.map(toRecord), null, 2);
+
+// --- Salvataggio ------------------------------------------------------------------
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) applyData(parseFile(raw));
+  } catch (e) { toast("Impossibile leggere i dati salvati: " + e.message); }
+}
+
+function applyData(d) {
+  data.stays = sortStays(d.stays);
+  if (d.rules) data.rules = d.rules;
+  if (d.structure) data.structure = d.structure;
+}
+
+function save() {
+  const json = appDataJSON();
+  try { localStorage.setItem(STORE_KEY, json); }
+  catch (e) { toast("Salvataggio non riuscito: " + e.message); }
+  writeLinkedFile(json);
+}
+
+/** Prima di importare, tiene una copia dei dati attuali (ultime 10) dentro l'app. */
+function autoBackup() {
+  if (!data.stays.length) return;
+  let list = [];
+  try { list = JSON.parse(localStorage.getItem(BACKUPS_KEY) || "[]"); } catch (e) {}
+  list.unshift({ when: new Date().toISOString(), count: data.stays.length, json: appDataJSON() });
+  try { localStorage.setItem(BACKUPS_KEY, JSON.stringify(list.slice(0, 10))); } catch (e) {}
+}
+
+// --- File dati collegato (Windows/Mac con Chrome o Edge) ----------------------------
+// Si può collegare l'app a un file dati.json, per esempio nella cartella di Google Drive
+// usata dall'app per Mac: ogni modifica viene scritta anche lì.
+
+const fsSupported = "showOpenFilePicker" in window;
+let linked = null;        // FileSystemFileHandle
+let linkedReady = false;  // permesso di scrittura concesso
+let writing = Promise.resolve();
+
+function idb(mode, fn) {
+  return new Promise((res, rej) => {
+    const open = indexedDB.open("tassaSoggiorno", 1);
+    open.onupgradeneeded = () => open.result.createObjectStore("kv");
+    open.onerror = () => rej(open.error);
+    open.onsuccess = () => {
+      const tx = open.result.transaction("kv", mode);
+      const req = fn(tx.objectStore("kv"));
+      tx.oncomplete = () => res(req && req.result);
+      tx.onerror = () => rej(tx.error);
+    };
+  });
+}
+
+async function restoreLinked() {
+  if (!fsSupported) return;
+  try {
+    linked = await idb("readonly", s => s.get("fileDati")) || null;
+    if (linked && await linked.queryPermission({ mode: "readwrite" }) === "granted") await openLinked(false);
+  } catch (e) { linked = null; }
+  render();
+}
+
+async function openLinked(ask) {
+  if (ask && await linked.requestPermission({ mode: "readwrite" }) !== "granted") return;
+  const text = await (await linked.getFile()).text();
+  linkedReady = true;
+  if (text.trim()) { applyData(parseFile(text)); try { localStorage.setItem(STORE_KEY, appDataJSON()); } catch (e) {} }
+  else save();
+  render();
+}
+
+function writeLinkedFile(json) {
+  if (!linked || !linkedReady) return;
+  writing = writing.then(async () => {
+    const w = await linked.createWritable();
+    await w.write(json);
+    await w.close();
+  }).catch(e => toast("Non riesco a scrivere il file dati collegato: " + e.message));
+}
+
+async function linkFile(create) {
+  try {
+    const types = [{ description: "Dati tassa di soggiorno", accept: { "application/json": [".json"] } }];
+    const h = create
+      ? await window.showSaveFilePicker({ suggestedName: "dati.json", types })
+      : (await window.showOpenFilePicker({ types }))[0];
+    if (await h.requestPermission({ mode: "readwrite" }) !== "granted") return;
+    const text = create ? "" : await (await h.getFile()).text();
+    let fromFile = null;
+    if (text.trim()) {
+      try { fromFile = parseFile(text); } catch (e) { return alert("Il file scelto non sembra un file dati della tassa di soggiorno."); }
+    }
+    let useFile = !!fromFile;
+    if (fromFile && data.stays.length) {
+      const c = await ask("Nel file ci sono già dei dati",
+        `Il file contiene ${fromFile.stays.length} soggiorni, l'app ne ha ${data.stays.length}. Quali vuoi tenere?`,
+        [["file", "Usa quelli del file", true], ["app", "Sostituisci con quelli dell'app"], ["", "Annulla"]]);
+      if (!c) return;
+      useFile = c === "file";
+    }
+    autoBackup();
+    linked = h; linkedReady = true;
+    await idb("readwrite", s => s.put(h, "fileDati"));
+    if (useFile) { applyData(fromFile); try { localStorage.setItem(STORE_KEY, appDataJSON()); } catch (e) {} }
+    else save();
+    toast("File dati collegato: " + h.name);
+    render();
+  } catch (e) { if (e.name !== "AbortError") alert("Collegamento non riuscito: " + e.message); }
+}
+
+async function unlinkFile() {
+  linked = null; linkedReady = false;
+  try { await idb("readwrite", s => s.delete("fileDati")); } catch (e) {}
+  toast("File scollegato: i dati restano nell'app");
+  render();
+}
+
+// --- Utilità interfaccia -------------------------------------------------------
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+let toastTimer;
+function toast(msg) {
+  const t = $("toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("on"), 3200);
+}
+
+/** Finestra con più scelte. Restituisce il valore del pulsante premuto ("" = annulla). */
+function ask(title, text, buttons) {
+  return new Promise(resolve => {
+    const d = $("ask-dlg");
+    $("ask-title").textContent = title;
+    $("ask-text").textContent = text;
+    const box = $("ask-actions"); box.innerHTML = "";
+    for (const [value, label, primary] of buttons) {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "btn" + (primary ? " primary" : ""); b.textContent = label;
+      b.onclick = () => { d.close(); resolve(value); };
+      box.appendChild(b);
+    }
+    d.oncancel = () => resolve("");
+    d.showModal();
+  });
+}
+
+function download(name, text, type) {
+  const blob = new Blob([text], { type });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
+function years() {
+  const set = new Set([new Date().getFullYear(), year]);
+  for (const s of data.stays) { set.add(yearOf(s.checkIn)); set.add(yearOf(addDays(s.checkOut, -1))); }
+  return [...set].sort((a, b) => b - a);
+}
+
+// --- Rendering ---------------------------------------------------------------------
+
+function render() {
+  const st = data.structure;
+  $("title").textContent = st.nomeStruttura || "Tassa di soggiorno";
+  $("subtitle").textContent = st.nomeStruttura ? "Imposta di soggiorno" + (st.comune ? " · " + st.comune : "") : "Registro e calcolo dell'imposta";
+  $("year").innerHTML = years().map(y => `<option ${y === year ? "selected" : ""}>${y}</option>`).join("");
+  for (const b of $("tabs").children) b.classList.toggle("on", b.dataset.tab === tab);
+  const views = { stays: viewStays, summary: viewSummary, m21: viewM21, ae: viewAE, settings: viewSettings };
+  $("main").innerHTML = views[tab]();
+}
+
+function banners() {
+  let out = "";
+  if (linked && !linkedReady) {
+    out += `<div class="banner"><b>File dati collegato: ${esc(linked.name)}</b>
+      Per leggere e salvare di nuovo nel file serve un tuo clic. <button class="btn primary" data-act="reopen-linked">Riprendi il file</button></div>`;
+  }
+  if (!data.structure.nomeStruttura) {
+    out += `<div class="banner"><b>Benvenuto!</b>
+      Per iniziare compila i dati della tua struttura (servono per il Modello 21) e controlla le tariffe del tuo Comune.
+      Se hai già un backup (per esempio dall'app per Mac), importalo da Impostazioni.
+      <div class="row" style="margin-top:8px"><button class="btn primary" data-act="go-settings">Vai alle Impostazioni</button></div></div>`;
+  } else if (data.stays.length) {
+    const last = localStorage.getItem(LAST_EXPORT_KEY);
+    if (!last || Date.now() - Date.parse(last) > 30 * 86400000) {
+      out += `<div class="banner"><b>Ricordati il backup</b>
+        ${last ? "L'ultimo backup è del " + italian(last.slice(0, 10)) + "." : "Non hai ancora salvato un backup."}
+        I dati sono salvati solo su questo dispositivo: scarica una copia ogni tanto.
+        <div class="row" style="margin-top:8px"><button class="btn primary" data-act="export">Scarica backup</button></div></div>`;
+    }
+  }
+  return out;
+}
+
+function viewStays() {
+  const q = search.trim().toLowerCase();
+  let list = data.stays.filter(s => touches(s, year) && (!q || s.name.toLowerCase().includes(q) || s.notes.toLowerCase().includes(q)));
+  const key = {
+    name: s => s.name.toLowerCase(), checkIn: s => s.checkIn, checkOut: s => s.checkOut, numPeople: s => s.numPeople,
+    nights: s => nights(s), taxable: s => taxableNights(s), cents: s => stayTotals(s).cents,
+  }[sortBy.key];
+  list = list.slice().sort((a, b) => (key(a) < key(b) ? -1 : key(a) > key(b) ? 1 : 0) * sortBy.dir);
+  const tot = sum(list.map(stayTotals));
+  const th = (k, label, cls = "") => `<th class="sort ${cls}" data-sort="${k}">${label}${sortBy.key === k ? (sortBy.dir > 0 ? " ▲" : " ▼") : ""}</th>`;
+  const rows = list.map(s => {
+    const t = stayTotals(s);
+    return `<tr class="click" data-edit="${s.id}"><td>${esc(s.name)}${s.notes ? ` <span class="muted" title="${esc(s.notes)}">✎</span>` : ""}</td>
+      <td>${italian(s.checkIn)}</td><td>${italian(s.checkOut)}</td>
+      <td>${s.numPeople}${s.exemptPeople ? ` <span class="muted">(${s.exemptPeople} es.)</span>` : ""}</td>
+      <td>${nights(s)}</td><td>${taxableNights(s)}</td><td>${euro(t.cents)}</td></tr>`;
+  }).join("");
+  return banners() + `<div class="card">
+    <div class="row" style="margin-bottom:12px">
+      <input type="search" id="search" class="grow" placeholder="Cerca per nome o note" value="${esc(search)}">
+      <button class="btn primary" data-act="new">+ Nuovo soggiorno</button>
+    </div>
+    ${list.length ? `<div class="tablewrap"><table class="t">
+      <thead><tr>${th("name", "Nome")}${th("checkIn", "Check-in")}${th("checkOut", "Check-out")}${th("numPeople", "Persone")}${th("nights", "Notti")}${th("taxable", "Tassabili")}${th("cents", "Imposta")}</tr></thead>
+      <tbody>${rows}<tr class="tot"><td>${list.length} soggiorni</td><td></td><td></td><td></td><td></td><td></td><td>${euro(tot.cents)}</td></tr></tbody>
+    </table></div>
+    <p class="muted" style="font-size:13px;margin-bottom:0">Tocca un soggiorno per modificarlo. Per i soggiorni a cavallo d'anno, il totale dell'anno è nel Riepilogo.</p>`
+    : `<div class="empty">${q ? "Nessun soggiorno trovato." : `Nessun soggiorno nel ${year}.`}</div>`}
+  </div>`;
+}
+
+function periodTable(title, rows) {
+  return `<div class="card"><h2>${title}</h2><div class="tablewrap"><table class="t">
+    <thead><tr><th>Periodo</th><th>Pernott. totali</th><th>Tassabili</th><th>Esenti</th><th>Imposta</th></tr></thead><tbody>
+    ${rows.map(([name, t, bold]) => `<tr class="${bold ? "tot" : t.presenze ? "" : "zero"}"><td>${name}</td><td>${t.presenze}</td>
+      <td>${t.tassabili}</td><td>${t.presenze - t.tassabili}</td><td>${euro(t.cents)}</td></tr>`).join("")}
+    </tbody></table></div></div>`;
+}
+
+function viewSummary() {
+  const m = monthly(year), a = sum(m);
+  const max = Math.max(1, ...m.map(x => x.cents));
+  const bars = m.map((x, i) => `<div class="col"><div class="val">${x.cents ? amount(x.cents) : ""}</div>
+    <div class="bar" style="height:${(x.cents / max) * 100}%"></div><div class="lab">${MONTHS[i].slice(0, 3)}</div></div>`).join("");
+  return `<div class="tiles">
+      <div class="tile main"><div class="k">Imposta ${year}</div><div class="v">${euro(a.cents)}</div></div>
+      <div class="tile"><div class="k">Pernottamenti tassabili</div><div class="v">${a.tassabili}</div></div>
+      <div class="tile"><div class="k">Pernottamenti totali</div><div class="v">${a.presenze}</div></div>
+      <div class="tile"><div class="k">Pernottamenti esenti</div><div class="v">${a.presenze - a.tassabili}</div></div>
+    </div>
+    <div class="card"><h2>Imposta per mese</h2><div class="chart">${bars}</div></div>
+    ${periodTable("Mensile", m.map((t, i) => [MONTHS[i], t]).concat([["Totale anno", a, true]]))}
+    <div class="two">
+      ${periodTable("Trimestrale", quarterly(year).map((t, i) => [QUARTERS[i], t]))}
+      ${periodTable("Semestrale", semesters(year).map((t, i) => [SEMESTERS[i], t]))}
+    </div>
+    <div class="card"><h2>Esporta per Excel</h2><div class="row">
+      <button class="btn" data-act="csv-summary">Riepilogo mensile (CSV)</button>
+      <button class="btn" data-act="csv-stays">Elenco soggiorni ${year} (CSV)</button></div></div>`;
+}
+
+function docM21(y) {
+  const info = data.structure, m = monthly(y), s = semesters(y), a = sum(m);
+  const regs = m.filter(x => x.cents > 0).length;
+  let rows = "";
+  m.forEach((x, i) => {
+    const v = x.cents > 0 ? amount(x.cents) : "";
+    rows += `<tr><td class="c">${i + 1}</td><td>${MONTHS[i].toUpperCase()} - IDS</td><td></td><td class="r">${v}</td><td class="r">${v}</td><td></td><td>${x.cents > 0 ? "" : "Nessuna presenza"}</td></tr>`;
+    if (i === 5 || i === 11) {
+      const t = s[i === 5 ? 0 : 1];
+      rows += `<tr class="sub"><td colspan="2" class="r">${i === 5 ? "TOTALE 1° SEMESTRE (GEN-GIU)" : "TOTALE 2° SEMESTRE (LUG-DIC)"}</td><td></td><td class="r">${amount(t.cents)}</td><td class="r">${amount(t.cents)}</td><td></td><td></td></tr>`;
+    }
+  });
+  return `<div class="doc-m21">
+    <h1>CONTO DELLA GESTIONE DELL'AGENTE CONTABILE</h1>
+    <div class="head">
+      <div><b>GESTORE:</b> ${esc(info.gestore)}<br><b>Legale Rappresentante:</b> ${esc(info.legaleRappresentante)}<br>
+        <b>Indirizzo:</b> ${esc(info.indirizzo)}<br><b>P.IVA/C.F.:</b> ${esc(info.codiceFiscale)}<br><b>STRUTTURA:</b> ${esc(info.nomeStruttura)}</div>
+      <div class="ente"><b>ENTE TITOLARE DELL'ENTRATA:</b><br>Comune di ${esc(info.comune)}<br><br><b>ANNO ESERCIZIO: ${y}</b></div>
+    </div>
+    <table><thead>
+      <tr><th width="5%" rowspan="2">N.</th><th width="30%" rowspan="2">PERIODO E OGGETTO RISCOSSIONE</th>
+        <th colspan="2">ESTREMI RISCOSSIONE</th><th colspan="2">VERSAMENTO TESORERIA</th><th width="15%" rowspan="2">NOTE</th></tr>
+      <tr><th>N. RICEV.</th><th>IMPORTO</th><th>IMPORTO</th><th>TIPO</th></tr></thead>
+      <tbody>${rows}<tr class="tot"><td colspan="2" class="c">TOTALE ANNUALE</td><td></td><td class="r">${amount(a.cents)}</td><td class="r">${amount(a.cents)}</td><td></td><td></td></tr></tbody>
+    </table>
+    <p><b>Il presente conto contiene n. ${regs} registrazioni in n. 1 pagine.</b></p>
+    <p>Luogo e data: ${esc(info.comune)}, ${italian(todayISO())}</p>
+    <div style="width:40%;text-align:center;margin-top:10px">L'AGENTE CONTABILE<br>(${esc(info.gestore)})<br><br>_____________________________</div>
+    <div class="foot"><div><b>compilazione a cura del Comune di ${esc(info.comune)}</b></div>
+      <div><b>VISTO DI REGOLARITA'</b><br><br>lì .....................................................<br><br>
+        <div style="text-align:center">IL RESPONSABILE DEL SERVIZIO FINANZIARIO<br><br>__________________________________________</div></div></div>
+  </div>`;
+}
+
+function docAE(y) {
+  const info = data.structure, q = quarterly(y), t = sum(q);
+  const row = (name, x, bold) => `<tr${bold ? ' class="tot"' : ""}><td>${name}</td><td class="c">${x.presenze}</td><td class="c">${x.presenze - x.tassabili}</td><td class="c">${x.tassabili}</td><td class="r">${euro(x.cents)}</td></tr>`;
+  const line = (k, v) => `<tr><td><b>${k}:</b> ${esc(v)}</td></tr>`;
+  return `<div class="doc-ae">
+    <h2>Dati per Agenzia delle Entrate – Anno ${y}</h2>
+    <h3>Dati struttura</h3>
+    <table class="info">${line("Struttura", info.nomeStruttura)}${line("Gestore", info.gestore)}${line("Codice fiscale", info.codiceFiscale)}
+      ${line("Partita IVA", info.partitaIva)}${line("ATECO", info.ateco)}${line("PEC", info.pec)}${line("Comune", info.comune)}</table>
+    <h3>Riepilogo trimestrale</h3>
+    <table><thead><tr><th>Periodo</th><th>Pernottamenti totali</th><th>Pernottamenti esenti</th><th>Pernottamenti imponibili</th><th>Imposta</th></tr></thead>
+      <tbody>${q.map((x, i) => row(QUARTERS[i], x)).join("")}${row("TOTALE", t, true)}</tbody></table>
+    <p class="note">Pernottamento = una persona per una notte. Sono esenti le notti oltre il limite per soggiorno
+      e le persone segnate come esenti. Documento generato il ${italian(todayISO())}.</p>
+  </div>`;
+}
+
+function docView(kind, html) {
+  const missing = !data.structure.nomeStruttura || !data.structure.comune;
+  return (missing ? `<div class="banner"><b>Mancano i dati della struttura</b>Compilali in Impostazioni: compaiono nell'intestazione del documento.
+      <div class="row" style="margin-top:8px"><button class="btn" data-act="go-settings">Vai alle Impostazioni</button></div></div>` : "")
+    + `<div class="row" style="margin-bottom:12px"><button class="btn primary" data-act="print" data-doc="${kind}">Stampa / salva PDF</button>
+       <span class="muted" style="font-size:14px">Dalla finestra di stampa puoi scegliere "Salva come PDF".</span></div>
+       <div class="sheet">${html}</div>`;
+}
+const viewM21 = () => docView("m21", docM21(year));
+const viewAE = () => docView("ae", docAE(year));
+
+function viewSettings() {
+  const st = data.structure;
+  const fields = STRUCTURE_FIELDS.map(([k, label]) =>
+    `<label class="f">${label}<input type="text" data-struct="${k}" value="${esc(st[k])}"></label>`).join("");
+  const rules = data.rules.map((r, i) => `<tr>
+      <td><input type="number" data-rule="${i}:fromYear" value="${r.fromYear}" inputmode="numeric"></td>
+      <td><input type="number" data-rule="${i}:rate" value="${r.rate}" step="0.01" min="0" inputmode="decimal"></td>
+      <td><input type="number" data-rule="${i}:maxNights" value="${r.maxNights}" min="0" inputmode="numeric"></td>
+      <td><button class="btn danger" data-act="del-rule" data-i="${i}" ${data.rules.length < 2 ? "disabled" : ""}>Togli</button></td></tr>`).join("");
+  let backups = [];
+  try { backups = JSON.parse(localStorage.getItem(BACKUPS_KEY) || "[]"); } catch (e) {}
+  const linkedHtml = !fsSupported
+    ? `<p class="muted">Su questo dispositivo i dati restano dentro l'app. Per passarli su un altro dispositivo usa "Scarica backup" e "Importa backup".</p>`
+    : linked
+      ? `<p>Collegato a <b>${esc(linked.name)}</b>${linkedReady ? ": ogni modifica viene salvata anche lì." : " (in attesa di un tuo clic)."}</p>
+         <div class="row">${linkedReady ? "" : `<button class="btn primary" data-act="reopen-linked">Riprendi il file</button>`}
+         <button class="btn" data-act="unlink">Scollega</button></div>`
+      : `<p class="muted">Puoi collegare l'app a un file <b>dati.json</b>, per esempio nella stessa cartella di Google Drive usata dall'app per Mac:
+          così PC e Mac lavorano sugli stessi dati. Non aprire l'app su due computer nello stesso momento.</p>
+         <div class="row"><button class="btn" data-act="link-open">Collega un file esistente…</button>
+         <button class="btn" data-act="link-new">Crea un nuovo file dati…</button></div>`;
+  return `<div class="card"><h2>Dati della struttura</h2>
+      <p class="muted" style="margin-top:0">Compaiono nell'intestazione del Modello 21 e nel riepilogo per l'Agenzia delle Entrate. Si salvano da soli.</p>
+      <div class="grid2">${fields}</div></div>
+    <div class="card"><h2>Tariffe del Comune</h2>
+      <p class="muted" style="margin-top:0">Ogni tariffa vale dall'anno indicato in poi. Il numero massimo di notti tassabili dipende dall'anno del check-in.</p>
+      <div class="tablewrap"><table class="t rules"><thead><tr><th class="l">Dal (anno)</th><th class="l">€ a persona/notte</th><th class="l">Max notti</th><th></th></tr></thead>
+      <tbody>${rules}</tbody></table></div>
+      <div class="row" style="margin-top:10px"><button class="btn" data-act="add-rule">+ Aggiungi tariffa</button></div></div>
+    <div class="card"><h2>Backup</h2>
+      <p class="muted" style="margin-top:0">Il backup è un file .json che si apre anche con l'app per Mac. Importando puoi aggiungere soggiorni o sostituire tutto.</p>
+      <div class="row"><button class="btn primary" data-act="export">Scarica backup</button>
+        <button class="btn" data-act="import">Importa backup…</button>
+        <button class="btn" data-act="export-full">Scarica file dati completo</button></div>
+      ${backups.length ? `<h2 style="margin-top:18px">Copie automatiche</h2><p class="muted" style="margin-top:0">Fatte prima di ogni importazione.</p>
+        <div class="tablewrap"><table class="t"><tbody>${backups.map((b, i) => `<tr><td>${new Date(b.when).toLocaleString("it-IT")}</td><td>${b.count} soggiorni</td>
+        <td><button class="btn" data-act="restore" data-i="${i}">Ripristina</button></td></tr>`).join("")}</tbody></table></div>` : ""}</div>
+    <div class="card"><h2>File dati condiviso</h2>${linkedHtml}</div>
+    <div class="card"><h2>Zona pericolosa</h2>
+      <div class="row"><button class="btn danger" data-act="wipe">Cancella tutti i soggiorni</button></div></div>
+    <p class="muted" style="font-size:13px;text-align:center">Tassa di soggiorno · versione web 1.0 · funziona anche senza internet</p>`;
+}
+
+// --- Modulo soggiorno ---------------------------------------------------------------
+
+let editingId = null;
+
+function openStay(s) {
+  editingId = s ? s.id : null;
+  const start = year === new Date().getFullYear() ? todayISO() : iso(year, 1, 1);
+  const d = s || { name: "", checkIn: start, checkOut: addDays(start, 1), numPeople: 2, exemptPeople: 0, notes: "" };
+  $("stay-title").textContent = s ? "Modifica soggiorno" : "Nuovo soggiorno";
+  $("f-save").textContent = s ? "Salva" : "Aggiungi";
+  $("f-delete").style.display = s ? "" : "none";
+  $("f-name").value = d.name; $("f-in").value = d.checkIn; $("f-out").value = d.checkOut;
+  $("f-people").value = d.numPeople; $("f-exempt").value = d.exemptPeople; $("f-notes").value = d.notes;
+  updateCalc();
+  $("stay-dlg").showModal();
+  if (!s) setTimeout(() => $("f-name").focus(), 50);
+}
+
+function draft() {
+  const people = Math.max(1, parseInt($("f-people").value, 10) || 1);
+  return { id: editingId || uuid(), name: $("f-name").value.trim(), checkIn: parseDay($("f-in").value), checkOut: parseDay($("f-out").value),
+           numPeople: people, exemptPeople: Math.max(0, parseInt($("f-exempt").value, 10) || 0), notes: $("f-notes").value.trim() };
+}
+
+function problem(d) {
+  if (!d.name) return "Inserisci il nome del cliente.";
+  if (!d.checkIn || !d.checkOut) return "Inserisci le date.";
+  if (d.checkOut <= d.checkIn) return "Il check-out deve essere dopo il check-in.";
+  if (d.exemptPeople > d.numPeople) return "Le persone esenti non possono superare le persone totali.";
+  return "";
+}
+
+function updateCalc() {
+  const d = draft(), p = problem(d);
+  if (d.checkIn && d.checkOut && d.checkOut > d.checkIn) {
+    const t = stayTotals(d);
+    $("f-calc").innerHTML = `<div><span>Notti</span><b>${nights(d)}</b></div>
+      <div><span>Notti tassabili</span><b>${taxableNights(d)} (max ${rule(yearOf(d.checkIn)).maxNights} nel ${yearOf(d.checkIn)})</b></div>
+      <div><span>Pernottamenti tassabili</span><b>${t.tassabili} su ${t.presenze}</b></div>
+      <div><span>Imposta da riscuotere</span><span class="big">${euro(t.cents)}</span></div>`;
+  } else $("f-calc").innerHTML = `<div class="muted">Il calcolo compare quando le date sono giuste.</div>`;
+  $("f-err").textContent = d.name || $("f-name").dataset.touched ? p : "";
+  $("f-save").disabled = !!p;
+}
+
+$("stay-form").addEventListener("input", e => {
+  if (e.target.id === "f-name") e.target.dataset.touched = "1";
+  if (e.target.id === "f-in") {
+    const ci = parseDay($("f-in").value), co = parseDay($("f-out").value);
+    if (ci && (!co || co <= ci)) $("f-out").value = addDays(ci, 1);
+  }
+  updateCalc();
+});
+$("stay-form").addEventListener("click", e => {
+  const b = e.target.closest("[data-step]"); if (!b) return;
+  const [id, n] = b.dataset.step.split(":"); const el = $(id);
+  el.value = Math.max(Number(el.min), Math.min(Number(el.max), (parseInt(el.value, 10) || 0) + Number(n)));
+  updateCalc();
+});
+$("stay-form").addEventListener("submit", e => {
+  e.preventDefault();
+  const d = draft(); if (problem(d)) return;
+  const i = data.stays.findIndex(s => s.id === d.id);
+  if (i >= 0) data.stays[i] = d; else data.stays.push(d);
+  sortStays(data.stays); save();
+  $("stay-dlg").close(); delete $("f-name").dataset.touched;
+  toast(i >= 0 ? "Soggiorno aggiornato" : "Soggiorno aggiunto");
+  render();
+});
+$("f-cancel").onclick = () => { $("stay-dlg").close(); delete $("f-name").dataset.touched; };
+$("f-delete").onclick = () => {
+  if (!confirm("Eliminare il soggiorno?")) return;
+  data.stays = data.stays.filter(s => s.id !== editingId); save();
+  $("stay-dlg").close(); toast("Soggiorno eliminato"); render();
+};
+
+// --- Azioni ---------------------------------------------------------------------------
+
+function csv(rows) {
+  // Separatore ";" e BOM, come si aspetta Excel in italiano.
+  return "﻿" + rows.map(r => r.map(c => /[;"\n]/.test(c) ? `"${c.replace(/"/g, '""')}"` : c).join(";")).join("\r\n");
+}
+
+function printDoc(kind) {
+  $("page-style").textContent = kind === "m21" ? "@page { size: A4 landscape; margin: 8mm; }" : "@page { size: A4 portrait; margin: 15mm; }";
+  $("print-area").innerHTML = kind === "m21" ? docM21(year) : docAE(year);
+  const old = document.title;
+  document.title = (kind === "m21" ? "Modello 21 - " : "Agenzia Entrate - ") + year;
+  document.body.classList.add("printing");
+  setTimeout(() => {
+    window.print();
+    // Su iPad la stampa non blocca la pagina: si ripulisce dopo.
+    setTimeout(() => { document.body.classList.remove("printing"); document.title = old; }, 1000);
+  }, 50);
+}
+
+async function importFile(file) {
+  let imported;
+  try { imported = parseFile(await file.text()); }
+  catch (e) { return alert("Il file non sembra un backup della tassa di soggiorno.\n" + e.message); }
+  let replace = true;
+  if (data.stays.length) {
+    const c = await ask(`Importare ${imported.stays.length} soggiorni?`,
+      `Hai già ${data.stays.length} soggiorni salvati. Puoi aggiungere quelli nuovi (i doppioni vengono saltati) oppure sostituire tutto. Una copia dei dati attuali viene tenuta comunque.`,
+      [["add", "Aggiungi", true], ["replace", "Sostituisci tutto"], ["", "Annulla"]]);
+    if (!c) return;
+    replace = c === "replace";
+  }
+  autoBackup();
+  let added;
+  if (replace) {
+    data.stays = sortStays(imported.stays); added = imported.stays.length;
+  } else {
+    const key = s => `${s.name.toLowerCase()}|${s.checkIn}|${s.checkOut}|${s.numPeople}`;
+    const have = new Set(data.stays.map(key)), ids = new Set(data.stays.map(s => s.id));
+    const fresh = imported.stays.filter(s => !have.has(key(s))).map(s => ids.has(s.id) ? { ...s, id: uuid() } : s);
+    data.stays = sortStays(data.stays.concat(fresh)); added = fresh.length;
+  }
+  // Dal file dati completo dell'app per Mac si prendono anche tariffe e dati struttura, se qui mancano.
+  if (imported.structure && !data.structure.nomeStruttura) data.structure = imported.structure;
+  if (imported.rules && replace) data.rules = imported.rules;
+  save();
+  const ys = imported.stays.map(s => yearOf(s.checkIn));
+  if (ys.length) year = Math.max(...ys);
+  tab = "stays"; render();
+  alert(replace ? `Caricati ${added} soggiorni.` : `Aggiunti ${added} soggiorni.\n${imported.stays.length - added} erano già presenti e sono stati saltati.`);
+}
+
+const actions = {
+  "new": () => openStay(null),
+  "go-settings": () => { tab = "settings"; render(); window.scrollTo(0, 0); },
+  "print": b => printDoc(b.dataset.doc),
+  "export": () => {
+    if (!data.stays.length) return toast("Nessun dato da esportare");
+    download(`backup_tassa_soggiorno_${todayISO()}.json`, backupJSON(), "application/json");
+    localStorage.setItem(LAST_EXPORT_KEY, new Date().toISOString()); render();
+  },
+  "export-full": () => { download("dati.json", appDataJSON(), "application/json"); localStorage.setItem(LAST_EXPORT_KEY, new Date().toISOString()); },
+  "import": () => { $("file-in").value = ""; $("file-in").click(); },
+  "csv-summary": () => {
+    const m = monthly(year), t = sum(m);
+    const rows = [[`Mese ${year}`, "Pernottamenti totali", "Pernottamenti tassabili", "Pernottamenti esenti", "Imposta (€)"]]
+      .concat(m.map((x, i) => [MONTHS[i], String(x.presenze), String(x.tassabili), String(x.presenze - x.tassabili), amount(x.cents)]))
+      .concat([["TOTALE", String(t.presenze), String(t.tassabili), String(t.presenze - t.tassabili), amount(t.cents)]]);
+    download(`riepilogo_tassa_${year}.csv`, csv(rows), "text/csv");
+  },
+  "csv-stays": () => {
+    const rows = [["Nome", "Check-in", "Check-out", "Persone", "Esenti", "Notti", "Notti tassabili", "Pernottamenti", "Pernottamenti tassabili", "Imposta (€)", "Note"]]
+      .concat(data.stays.filter(s => touches(s, year)).map(s => { const t = stayTotals(s);
+        return [s.name, italian(s.checkIn), italian(s.checkOut), String(s.numPeople), String(s.exemptPeople), String(nights(s)),
+                String(taxableNights(s)), String(t.presenze), String(t.tassabili), amount(t.cents), s.notes]; }));
+    download(`soggiorni_${year}.csv`, csv(rows), "text/csv");
+  },
+  "add-rule": () => {
+    const last = data.rules.reduce((a, b) => b.fromYear > a.fromYear ? b : a, data.rules[0] || DEFAULT_RULES[1]);
+    data.rules.push({ fromYear: Math.max(new Date().getFullYear(), last.fromYear + 1), rate: last.rate, maxNights: last.maxNights });
+    save(); render();
+  },
+  "del-rule": b => { data.rules.splice(Number(b.dataset.i), 1); save(); render(); },
+  "restore": async b => {
+    const list = JSON.parse(localStorage.getItem(BACKUPS_KEY) || "[]"), item = list[Number(b.dataset.i)];
+    if (!item || !confirm(`Ripristinare la copia del ${new Date(item.when).toLocaleString("it-IT")} (${item.count} soggiorni)? I dati attuali verranno sostituiti.`)) return;
+    autoBackup(); applyData(parseFile(item.json)); save(); toast("Copia ripristinata"); render();
+  },
+  "wipe": () => {
+    if (!confirm("Cancellare TUTTI i soggiorni da questo dispositivo?")) return;
+    if (!confirm("Sei sicuro? Se non hai un backup non si possono recuperare.")) return;
+    autoBackup(); data.stays = []; save(); toast("Soggiorni cancellati"); render();
+  },
+  "link-open": () => linkFile(false),
+  "link-new": () => linkFile(true),
+  "unlink": () => unlinkFile(),
+  "reopen-linked": () => openLinked(true).catch(e => alert("Non riesco ad aprire il file: " + e.message)),
+};
+
+document.addEventListener("click", e => {
+  const tabBtn = e.target.closest("#tabs button");
+  if (tabBtn) { tab = tabBtn.dataset.tab; render(); window.scrollTo(0, 0); return; }
+  const act = e.target.closest("[data-act]");
+  if (act && actions[act.dataset.act]) { actions[act.dataset.act](act); return; }
+  const sort = e.target.closest("[data-sort]");
+  if (sort) { const k = sort.dataset.sort; sortBy = { key: k, dir: sortBy.key === k ? -sortBy.dir : 1 }; render(); return; }
+  const row = e.target.closest("[data-edit]");
+  if (row) { const s = data.stays.find(x => x.id === row.dataset.edit); if (s) openStay(s); }
+});
+
+document.addEventListener("input", e => {
+  const t = e.target;
+  if (t.id === "search") {
+    search = t.value; const pos = t.selectionStart; render();
+    const n = $("search"); n.focus(); n.setSelectionRange(pos, pos);
+  } else if (t.dataset.struct) {
+    data.structure[t.dataset.struct] = t.value; save();
+    $("title").textContent = data.structure.nomeStruttura || "Tassa di soggiorno";
+  }
+});
+
+document.addEventListener("change", e => {
+  const t = e.target;
+  if (t.id === "year") { year = Number(t.value); render(); }
+  else if (t.dataset.rule) {
+    const [i, k] = t.dataset.rule.split(":");
+    const v = k === "rate" ? Math.max(0, Number(String(t.value).replace(",", ".")) || 0) : Math.max(0, parseInt(t.value, 10) || 0);
+    data.rules[Number(i)][k] = v; save(); render();
+  } else if (t.dataset.struct) render();
+});
+
+$("file-in").addEventListener("change", e => { const f = e.target.files[0]; if (f) importFile(f); });
+
+document.addEventListener("keydown", e => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "n" && !$("stay-dlg").open) { e.preventDefault(); openStay(null); }
+});
+
+// --- Avvio ----------------------------------------------------------------------------
+
+load();
+render();
+restoreLinked();
+if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(() => {});
+</script>
+</body>
+</html>
