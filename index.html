@@ -539,7 +539,9 @@ function render() {
   $("year").innerHTML = years().map(y => `<option ${y === year ? "selected" : ""}>${y}</option>`).join("");
   for (const b of $("tabs").children) b.classList.toggle("on", b.dataset.tab === tab);
   const views = { stays: viewStays, summary: viewSummary, m21: viewM21, ae: viewAE, settings: viewSettings };
-  $("main").innerHTML = views[tab]();
+  $("main").innerHTML = views[tab]() + `<p class="muted" style="font-size:12px;text-align:center;margin-top:24px">
+    Strumento di supporto: verifica sempre gli importi con il regolamento del tuo Comune prima di versare l'imposta.
+    I dati restano solo su questo dispositivo.</p>`;
 }
 
 function banners() {
@@ -728,7 +730,10 @@ function viewSettings() {
     <div class="card"><h2>File dati condiviso</h2>${linkedHtml}</div>
     <div class="card"><h2>Zona pericolosa</h2>
       <div class="row"><button class="btn danger" data-act="wipe">Cancella tutti i soggiorni</button></div></div>
-    <p class="muted" style="font-size:13px;text-align:center">Tassa di soggiorno · versione web 1.0 · funziona anche senza internet</p>`;
+    <div class="card"><h2>Avvertenza</h2><p class="muted" style="margin:0">Questa app è uno strumento di supporto gratuito, fornito così com'è.
+      I calcoli seguono le tariffe impostate qui sopra: controlla che corrispondano al regolamento del tuo Comune e verifica sempre
+      gli importi prima di versare l'imposta e di consegnare i documenti. Chi usa l'app resta responsabile dei dati inseriti e dei versamenti.</p></div>
+    <p class="muted" style="font-size:13px;text-align:center">Tassa di soggiorno · versione web 1.1 · funziona anche senza internet</p>`;
 }
 
 // --- Modulo soggiorno ---------------------------------------------------------------
