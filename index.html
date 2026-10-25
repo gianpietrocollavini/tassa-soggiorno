@@ -319,6 +319,8 @@ const EN = {
   "Cancellare TUTTI i soggiorni da questo dispositivo?": "Delete ALL stays from this device?",
   "Sei sicuro? Se non hai un backup non si possono recuperare.": "Are you sure? Without a backup they can't be recovered.",
   "Soggiorni cancellati": "Stays deleted",
+  "Prima di cancellare l'app tiene comunque una copia automatica: puoi recuperarla da \"Copie automatiche\" qui sopra.":
+    "Before deleting, the app always keeps an automatic copy: you can restore it from \"Automatic copies\" above.",
   "Mese": "Month", "TOTALE": "TOTAL", "Imposta (€)": "Tax (€)", "Pernottamenti": "Guest-nights",
 };
 
@@ -335,6 +337,10 @@ const EN_PATTERNS = [
   [/^Imposta (\d+)$/, "Tax $1"],
   [/^Elenco soggiorni (\d+) \(CSV\)$/, "Stay list $1 (CSV)"],
   [/^Mese (\d+)$/, "Month $1"],
+  [/^Cancella i soggiorni del (\d+)$/, "Delete $1 stays"],
+  [/^Nessun soggiorno con check-in nel (\d+)$/, "No stays with check-in in $1"],
+  [/^Cancellare i (\d+) soggiorni con check-in nel (\d+)\? Gli altri anni restano\.$/, "Delete the $1 stays with check-in in $2? Other years are kept."],
+  [/^Cancellati (\d+) soggiorni del (\d+)$/, "Deleted $1 stays from $2"],
   [/^Tassa di soggiorno · versione web ([\d.]+) · funziona anche senza internet$/, "Tourist tax · web version $1 · works offline too"],
   [/^(\d+) \(max (\d+) nel (\d+)\)$/, "$1 (max $2 in $3)"],
   [/^(\d+) su (\d+)$/, "$1 of $2"],
@@ -902,11 +908,13 @@ function viewSettings() {
         <td><button class="btn" data-act="restore" data-i="${i}">Ripristina</button></td></tr>`).join("")}</tbody></table></div>` : ""}</div>
     <div class="card"><h2>File dati condiviso</h2>${linkedHtml}</div>
     <div class="card"><h2>Zona pericolosa</h2>
-      <div class="row"><button class="btn danger" data-act="wipe">Cancella tutti i soggiorni</button></div></div>
+      <p class="muted" style="margin-top:0">Prima di cancellare l'app tiene comunque una copia automatica: puoi recuperarla da "Copie automatiche" qui sopra.</p>
+      <div class="row"><button class="btn danger" data-act="wipe-year">Cancella i soggiorni del ${year}</button>
+        <button class="btn danger" data-act="wipe">Cancella tutti i soggiorni</button></div></div>
     <div class="card"><h2>Avvertenza</h2><p class="muted" style="margin:0">Questa app è uno strumento di supporto gratuito, fornito così com'è.
       I calcoli seguono le tariffe impostate qui sopra: controlla che corrispondano al regolamento del tuo Comune e verifica sempre
       gli importi prima di versare l'imposta e di consegnare i documenti. Chi usa l'app resta responsabile dei dati inseriti e dei versamenti.</p></div>
-    <p class="muted" style="font-size:13px;text-align:center">Tassa di soggiorno · versione web 1.3 · funziona anche senza internet</p>`;
+    <p class="muted" style="font-size:13px;text-align:center">Tassa di soggiorno · versione web 1.4 · funziona anche senza internet</p>`;
 }
 
 // --- Modulo soggiorno ---------------------------------------------------------------
@@ -1073,6 +1081,13 @@ const actions = {
     const list = JSON.parse(localStorage.getItem(BACKUPS_KEY) || "[]"), item = list[Number(b.dataset.i)];
     if (!item || !confirm(`Ripristinare la copia del ${new Date(item.when).toLocaleString("it-IT")} (${item.count} soggiorni)? I dati attuali verranno sostituiti.`)) return;
     autoBackup(); applyData(parseFile(item.json)); save(); toast("Copia ripristinata"); render();
+  },
+  "wipe-year": () => {
+    const n = data.stays.filter(s => yearOf(s.checkIn) === year).length;
+    if (!n) return toast(`Nessun soggiorno con check-in nel ${year}`);
+    if (!confirm(`Cancellare i ${n} soggiorni con check-in nel ${year}? Gli altri anni restano.`)) return;
+    autoBackup(); data.stays = data.stays.filter(s => yearOf(s.checkIn) !== year); save();
+    toast(`Cancellati ${n} soggiorni del ${year}`); render();
   },
   "wipe": () => {
     if (!confirm("Cancellare TUTTI i soggiorni da questo dispositivo?")) return;
