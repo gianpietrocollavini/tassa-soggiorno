@@ -37,6 +37,7 @@
   .brand select { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.4); color: #fff; border-radius: 8px;
                   padding: 6px 10px; font-weight: 600; }
   .brand select option { color: #000; }
+  .langbtn { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.4); color: #fff; border-radius: 8px; padding: 6px 10px; font-weight: 700; cursor: pointer; }
   nav.tabs { display: flex; gap: 2px; overflow-x: auto; margin-top: 10px; scrollbar-width: none; }
   nav.tabs button { background: none; border: 0; color: rgba(255,255,255,.8); padding: 10px 14px; border-radius: 10px 10px 0 0;
                     white-space: nowrap; cursor: pointer; font-weight: 600; }
@@ -140,6 +141,7 @@
     <h1><span id="title">Tassa di soggiorno</span><small id="subtitle">Imposta di soggiorno</small></h1>
     <span class="spacer"></span>
     <label><span class="muted" style="color:rgba(255,255,255,.8);font-size:13px">Anno </span><select id="year"></select></label>
+    <button type="button" id="lang" class="langbtn">EN</button>
   </div>
   <nav class="tabs" id="tabs">
     <button data-tab="stays" class="on">Soggiorni</button>
@@ -223,6 +225,174 @@ const MONTHS = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
                 "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
 const QUARTERS = ["I Trimestre", "II Trimestre", "III Trimestre", "IV Trimestre"];
 const SEMESTERS = ["1° Semestre (gen–giu)", "2° Semestre (lug–dic)"];
+
+// --- Lingua (italiano / inglese) -----------------------------------------------------
+// L'interfaccia è scritta in italiano; in inglese i testi vengono tradotti sullo schermo
+// con questo dizionario. Modello 21 e riepilogo per l'Agenzia delle Entrate restano in
+// italiano perché vanno consegnati agli uffici italiani.
+
+const LANG_KEY = "tassaSoggiorno.lingua";
+let lang = (() => {
+  try { const v = localStorage.getItem(LANG_KEY); if (v) return v; } catch (e) {}
+  return (navigator.language || "it").toLowerCase().startsWith("it") ? "it" : "en";
+})();
+
+const EN = {
+  "Tassa di soggiorno": "Tourist tax",
+  "Registro e calcolo dell'imposta": "Stay register and tax calculator",
+  "Anno": "Year",
+  "Soggiorni": "Stays", "Riepilogo": "Summary", "Impostazioni": "Settings",
+  "Nuovo soggiorno": "New stay", "Modifica soggiorno": "Edit stay",
+  "Nome cliente": "Guest name", "Persone": "Guests", "di cui esenti": "of whom exempt", "Note": "Notes",
+  "Elimina": "Delete", "Annulla": "Cancel", "Aggiungi": "Add", "Salva": "Save",
+  "Strumento di supporto: verifica sempre gli importi con il regolamento del tuo Comune prima di versare l'imposta. I dati restano solo su questo dispositivo.":
+    "Support tool: always check the amounts against your municipality's regulations before paying the tax. Your data stays on this device only.",
+  "Per leggere e salvare di nuovo nel file serve un tuo clic.": "Click to read and save to the file again.",
+  "Riprendi il file": "Reopen the file",
+  "Benvenuto!": "Welcome!",
+  "Per iniziare compila i dati della tua struttura (servono per il Modello 21) e controlla le tariffe del tuo Comune. Se hai già un backup (per esempio dall'app per Mac), importalo da Impostazioni.":
+    "To get started, fill in your property details (needed for Modello 21) and check your municipality's rates. If you already have a backup (for example from the Mac app), import it from Settings.",
+  "Vai alle Impostazioni": "Go to Settings",
+  "Ricordati il backup": "Remember to back up",
+  "Scarica backup": "Download backup",
+  "Cerca per nome o note": "Search by name or notes",
+  "+ Nuovo soggiorno": "+ New stay",
+  "Nome": "Name", "Notti": "Nights", "Tassabili": "Taxable", "Imposta": "Tax",
+  "Tocca un soggiorno per modificarlo. Per i soggiorni a cavallo d'anno, il totale dell'anno è nel Riepilogo.":
+    "Tap a stay to edit it. For stays across two years, the year total is in the Summary.",
+  "Nessun soggiorno trovato.": "No stays found.",
+  "Periodo": "Period", "Pernott. totali": "Total nights", "Esenti": "Exempt",
+  "Gennaio": "January", "Febbraio": "February", "Marzo": "March", "Aprile": "April", "Maggio": "May", "Giugno": "June",
+  "Luglio": "July", "Agosto": "August", "Settembre": "September", "Ottobre": "October", "Novembre": "November", "Dicembre": "December",
+  "Gen": "Jan", "Mag": "May", "Giu": "Jun", "Lug": "Jul", "Ago": "Aug", "Set": "Sep", "Ott": "Oct", "Dic": "Dec",
+  "Pernottamenti tassabili": "Taxable guest-nights", "Pernottamenti totali": "Total guest-nights", "Pernottamenti esenti": "Exempt guest-nights",
+  "Imposta per mese": "Tax by month", "Mensile": "Monthly", "Totale anno": "Year total",
+  "Trimestrale": "Quarterly", "Semestrale": "Half-yearly",
+  "I Trimestre": "Q1", "II Trimestre": "Q2", "III Trimestre": "Q3", "IV Trimestre": "Q4",
+  "1° Semestre (gen–giu)": "1st half (Jan–Jun)", "2° Semestre (lug–dic)": "2nd half (Jul–Dec)",
+  "Esporta per Excel": "Export for Excel", "Riepilogo mensile (CSV)": "Monthly summary (CSV)",
+  "Mancano i dati della struttura": "Property details missing",
+  "Compilali in Impostazioni: compaiono nell'intestazione del documento.": "Fill them in under Settings: they appear in the document header.",
+  "Stampa / salva PDF": "Print / save PDF",
+  "Dalla finestra di stampa puoi scegliere \"Salva come PDF\".":
+    "In the print window you can choose \"Save as PDF\". The document is in Italian because it goes to Italian offices.",
+  "Dati della struttura": "Property details",
+  "Nome della struttura": "Property name", "Gestore": "Operator", "Legale rappresentante": "Legal representative",
+  "Indirizzo completo": "Full address", "Codice fiscale": "Tax code (codice fiscale)", "Partita IVA": "VAT number (partita IVA)",
+  "Codice ATECO": "ATECO code", "PEC": "PEC (certified email)", "Comune (ente che riceve l'imposta)": "Municipality (receives the tax)",
+  "Compaiono nell'intestazione del Modello 21 e nel riepilogo per l'Agenzia delle Entrate. Si salvano da soli.":
+    "They appear in the Modello 21 header and in the Agenzia delle Entrate summary. They save automatically.",
+  "Tariffe del Comune": "Municipal rates",
+  "Ogni tariffa vale dall'anno indicato in poi. Il numero massimo di notti tassabili dipende dall'anno del check-in.":
+    "Each rate applies from the given year onwards. The maximum number of taxable nights depends on the check-in year.",
+  "Dal (anno)": "From (year)", "€ a persona/notte": "€ per person/night", "Max notti": "Max nights",
+  "Togli": "Remove", "+ Aggiungi tariffa": "+ Add rate",
+  "Il backup è un file .json che si apre anche con l'app per Mac. Importando puoi aggiungere soggiorni o sostituire tutto.":
+    "The backup is a .json file that also opens in the Mac app. When importing you can add stays or replace everything.",
+  "Importa backup…": "Import backup…", "Scarica file dati completo": "Download full data file",
+  "Copie automatiche": "Automatic copies", "Fatte prima di ogni importazione.": "Made before every import.",
+  "Ripristina": "Restore", "File dati condiviso": "Shared data file",
+  "Su questo dispositivo i dati restano dentro l'app. Per passarli su un altro dispositivo usa \"Scarica backup\" e \"Importa backup\".":
+    "On this device your data stays inside the app. To move it to another device use \"Download backup\" and \"Import backup\".",
+  "Collegato a": "Linked to", ": ogni modifica viene salvata anche lì.": ": every change is saved there too.",
+  "(in attesa di un tuo clic).": "(waiting for your click).", "Scollega": "Unlink",
+  "Puoi collegare l'app a un file": "You can link the app to a",
+  ", per esempio nella stessa cartella di Google Drive usata dall'app per Mac: così PC e Mac lavorano sugli stessi dati. Non aprire l'app su due computer nello stesso momento.":
+    "file, for example in the same Google Drive folder used by the Mac app, so PC and Mac work on the same data. Don't open the app on two computers at the same time.",
+  "Collega un file esistente…": "Link an existing file…", "Crea un nuovo file dati…": "Create a new data file…",
+  "Zona pericolosa": "Danger zone", "Cancella tutti i soggiorni": "Delete all stays",
+  "Avvertenza": "Disclaimer",
+  "Questa app è uno strumento di supporto gratuito, fornito così com'è. I calcoli seguono le tariffe impostate qui sopra: controlla che corrispondano al regolamento del tuo Comune e verifica sempre gli importi prima di versare l'imposta e di consegnare i documenti. Chi usa l'app resta responsabile dei dati inseriti e dei versamenti.":
+    "This app is a free support tool, provided as is. Calculations follow the rates set above: check that they match your municipality's regulations and always verify the amounts before paying the tax and submitting documents. Users remain responsible for the data they enter and for their payments.",
+  "Notti tassabili": "Taxable nights", "Imposta da riscuotere": "Tax to collect",
+  "Il calcolo compare quando le date sono giuste.": "The calculation appears once the dates are valid.",
+  "Inserisci il nome del cliente.": "Enter the guest's name.", "Inserisci le date.": "Enter the dates.",
+  "Il check-out deve essere dopo il check-in.": "Check-out must be after check-in.",
+  "Le persone esenti non possono superare le persone totali.": "Exempt guests can't exceed total guests.",
+  "Il file scelto non sembra un file dati della tassa di soggiorno.": "The chosen file doesn't look like a tourist tax data file.",
+  "Nel file ci sono già dei dati": "The file already contains data",
+  "Usa quelli del file": "Use the file's data", "Sostituisci con quelli dell'app": "Replace with the app's data",
+  "File scollegato: i dati restano nell'app": "File unlinked: your data stays in the app",
+  "Soggiorno aggiornato": "Stay updated", "Soggiorno aggiunto": "Stay added", "Soggiorno eliminato": "Stay deleted",
+  "Eliminare il soggiorno?": "Delete this stay?", "Sostituisci tutto": "Replace everything",
+  "Nessun dato da esportare": "No data to export", "Copia ripristinata": "Copy restored",
+  "Cancellare TUTTI i soggiorni da questo dispositivo?": "Delete ALL stays from this device?",
+  "Sei sicuro? Se non hai un backup non si possono recuperare.": "Are you sure? Without a backup they can't be recovered.",
+  "Soggiorni cancellati": "Stays deleted",
+  "Mese": "Month", "TOTALE": "TOTAL", "Imposta (€)": "Tax (€)", "Pernottamenti": "Guest-nights",
+};
+
+const EN_PATTERNS = [
+  [/^Imposta di soggiorno(.*)$/s, "Tourist tax$1"],
+  [/^File dati collegato: (.*)$/s, "Linked data file: $1"],
+  [/^L'ultimo backup è del (\S+)\. I dati sono salvati solo su questo dispositivo: scarica una copia ogni tanto\.$/,
+    "Your last backup is from $1. Data is saved on this device only: download a copy now and then."],
+  [/^Non hai ancora salvato un backup\. I dati sono salvati solo su questo dispositivo: scarica una copia ogni tanto\.$/,
+    "You haven't saved a backup yet. Data is saved on this device only: download a copy now and then."],
+  [/^\((\d+) es\.\)$/, "($1 ex.)"],
+  [/^(\d+) soggiorni$/, "$1 stays"],
+  [/^Nessun soggiorno nel (\d+)\.$/, "No stays in $1."],
+  [/^Imposta (\d+)$/, "Tax $1"],
+  [/^Elenco soggiorni (\d+) \(CSV\)$/, "Stay list $1 (CSV)"],
+  [/^Mese (\d+)$/, "Month $1"],
+  [/^Tassa di soggiorno · versione web ([\d.]+) · funziona anche senza internet$/, "Tourist tax · web version $1 · works offline too"],
+  [/^(\d+) \(max (\d+) nel (\d+)\)$/, "$1 (max $2 in $3)"],
+  [/^(\d+) su (\d+)$/, "$1 of $2"],
+  [/^Il file contiene (\d+) soggiorni, l'app ne ha (\d+)\. Quali vuoi tenere\?$/, "The file has $1 stays, the app has $2. Which do you want to keep?"],
+  [/^Importare (\d+) soggiorni\?$/, "Import $1 stays?"],
+  [/^Hai già (\d+) soggiorni salvati\. .*$/s,
+    "You already have $1 stays saved. You can add the new ones (duplicates are skipped) or replace everything. A copy of your current data is kept anyway."],
+  [/^Caricati (\d+) soggiorni\.$/, "Loaded $1 stays."],
+  [/^Aggiunti (\d+) soggiorni\.\n(\d+) erano già presenti e sono stati saltati\.$/, "Added $1 stays.\n$2 were already there and were skipped."],
+  [/^Ripristinare la copia del (.+) \((\d+) soggiorni\)\? I dati attuali verranno sostituiti\.$/, "Restore the copy from $1 ($2 stays)? Your current data will be replaced."],
+  [/^Il file non sembra un backup della tassa di soggiorno\.\n(.*)$/s, "The file doesn't look like a tourist tax backup.\n$1"],
+  [/^Impossibile leggere i dati salvati: (.*)$/s, "Can't read the saved data: $1"],
+  [/^Salvataggio non riuscito: (.*)$/s, "Saving failed: $1"],
+  [/^Non riesco a scrivere il file dati collegato: (.*)$/s, "Can't write the linked data file: $1"],
+  [/^Collegamento non riuscito: (.*)$/s, "Linking failed: $1"],
+  [/^Non riesco ad aprire il file: (.*)$/s, "Can't open the file: $1"],
+  [/^(.*?)( [▲▼])$/s, (m, a, b) => tr(a) + b],
+];
+
+/** Traduce un testo italiano nella lingua scelta (spazi iniziali e finali conservati). */
+function tr(text) {
+  if (lang !== "en" || !text) return text;
+  const m = /^(\s*)([\s\S]*?)(\s*)$/.exec(text);
+  const core = m[2].replace(/\s+/g, " ");
+  if (!core) return text;
+  if (EN[core]) return m[1] + EN[core] + m[3];
+  for (const [re, out] of EN_PATTERNS) if (re.test(core)) return m[1] + core.replace(re, out) + m[3];
+  return text;
+}
+
+const originals = new WeakMap();
+/** Applica la lingua a una parte della pagina; i documenti per gli uffici restano in italiano. */
+function translate(root) {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode: n => n.parentElement && n.parentElement.closest(".sheet, #print-area, .raw, script, style, textarea, option")
+      ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT,
+  });
+  for (let n; (n = walker.nextNode());) {
+    if (!originals.has(n)) originals.set(n, n.nodeValue);
+    const it = originals.get(n), want = lang === "en" ? tr(it) : it;
+    if (n.nodeValue !== want) n.nodeValue = want;
+  }
+  for (const el of root.querySelectorAll("[placeholder]")) {
+    if (!el.dataset.ph) el.dataset.ph = el.placeholder;
+    el.placeholder = lang === "en" ? tr(el.dataset.ph) : el.dataset.ph;
+  }
+}
+
+function applyLang() {
+  document.documentElement.lang = lang;
+  document.title = lang === "en" ? "Tourist tax" : "Tassa di soggiorno";
+  const b = $("lang"); if (b) { b.textContent = lang === "en" ? "IT" : "EN"; b.title = lang === "en" ? "Passa all'italiano" : "Switch to English"; }
+  translate(document.body);
+}
+
+const nativeAlert = window.alert.bind(window), nativeConfirm = window.confirm.bind(window);
+window.alert = m => nativeAlert(tr(String(m)));
+window.confirm = m => nativeConfirm(tr(String(m)));
 
 function emptyStructure() {
   return Object.fromEntries(STRUCTURE_FIELDS.map(([k]) => [k, ""]));
@@ -494,7 +664,7 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "
 
 let toastTimer;
 function toast(msg) {
-  const t = $("toast"); t.textContent = msg; t.classList.add("on");
+  const t = $("toast"); t.textContent = tr(msg); t.classList.add("on");
   clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("on"), 3200);
 }
 
@@ -502,12 +672,12 @@ function toast(msg) {
 function ask(title, text, buttons) {
   return new Promise(resolve => {
     const d = $("ask-dlg");
-    $("ask-title").textContent = title;
-    $("ask-text").textContent = text;
+    $("ask-title").textContent = tr(title);
+    $("ask-text").textContent = tr(text);
     const box = $("ask-actions"); box.innerHTML = "";
     for (const [value, label, primary] of buttons) {
       const b = document.createElement("button");
-      b.type = "button"; b.className = "btn" + (primary ? " primary" : ""); b.textContent = label;
+      b.type = "button"; b.className = "btn" + (primary ? " primary" : ""); b.textContent = tr(label);
       b.onclick = () => { d.close(); resolve(value); };
       box.appendChild(b);
     }
@@ -536,6 +706,7 @@ function years() {
 function render() {
   const st = data.structure;
   $("title").textContent = st.nomeStruttura || "Tassa di soggiorno";
+  $("title").classList.toggle("raw", !!st.nomeStruttura);
   $("subtitle").textContent = st.nomeStruttura ? "Imposta di soggiorno" + (st.comune ? " · " + st.comune : "") : "Registro e calcolo dell'imposta";
   $("year").innerHTML = years().map(y => `<option ${y === year ? "selected" : ""}>${y}</option>`).join("");
   for (const b of $("tabs").children) b.classList.toggle("on", b.dataset.tab === tab);
@@ -543,6 +714,7 @@ function render() {
   $("main").innerHTML = views[tab]() + `<p class="muted" style="font-size:12px;text-align:center;margin-top:24px">
     Strumento di supporto: verifica sempre gli importi con il regolamento del tuo Comune prima di versare l'imposta.
     I dati restano solo su questo dispositivo.</p>`;
+  applyLang();
 }
 
 function banners() {
@@ -580,7 +752,7 @@ function viewStays() {
   const th = (k, label, cls = "") => `<th class="sort ${cls}" data-sort="${k}">${label}${sortBy.key === k ? (sortBy.dir > 0 ? " ▲" : " ▼") : ""}</th>`;
   const rows = list.map(s => {
     const t = stayTotals(s);
-    return `<tr class="click" data-edit="${s.id}"><td>${esc(s.name)}${s.notes ? ` <span class="muted" title="${esc(s.notes)}">✎</span>` : ""}</td>
+    return `<tr class="click" data-edit="${s.id}"><td><span class="raw">${esc(s.name)}</span>${s.notes ? ` <span class="muted" title="${esc(s.notes)}">✎</span>` : ""}</td>
       <td>${italian(s.checkIn)}</td><td>${italian(s.checkOut)}</td>
       <td>${s.numPeople}${s.exemptPeople ? ` <span class="muted">(${s.exemptPeople} es.)</span>` : ""}</td>
       <td>${nights(s)}</td><td>${taxableNights(s)}</td><td>${euro(t.cents)}</td></tr>`;
@@ -734,7 +906,7 @@ function viewSettings() {
     <div class="card"><h2>Avvertenza</h2><p class="muted" style="margin:0">Questa app è uno strumento di supporto gratuito, fornito così com'è.
       I calcoli seguono le tariffe impostate qui sopra: controlla che corrispondano al regolamento del tuo Comune e verifica sempre
       gli importi prima di versare l'imposta e di consegnare i documenti. Chi usa l'app resta responsabile dei dati inseriti e dei versamenti.</p></div>
-    <p class="muted" style="font-size:13px;text-align:center">Tassa di soggiorno · versione web 1.2 · funziona anche senza internet</p>`;
+    <p class="muted" style="font-size:13px;text-align:center">Tassa di soggiorno · versione web 1.3 · funziona anche senza internet</p>`;
 }
 
 // --- Modulo soggiorno ---------------------------------------------------------------
@@ -780,6 +952,7 @@ function updateCalc() {
   } else $("f-calc").innerHTML = `<div class="muted">Il calcolo compare quando le date sono giuste.</div>`;
   $("f-err").textContent = d.name || $("f-name").dataset.touched ? p : "";
   $("f-save").disabled = !!p;
+  translate($("stay-dlg"));
 }
 
 $("stay-form").addEventListener("input", e => {
@@ -881,14 +1054,14 @@ const actions = {
     const rows = [[`Mese ${year}`, "Pernottamenti totali", "Pernottamenti tassabili", "Pernottamenti esenti", "Imposta (€)"]]
       .concat(m.map((x, i) => [MONTHS[i], String(x.presenze), String(x.tassabili), String(x.presenze - x.tassabili), amount(x.cents)]))
       .concat([["TOTALE", String(t.presenze), String(t.tassabili), String(t.presenze - t.tassabili), amount(t.cents)]]);
-    download(`riepilogo_tassa_${year}.csv`, csv(rows), "text/csv");
+    download(`riepilogo_tassa_${year}.csv`, csv(rows.map((r, i) => i === 0 || i === rows.length - 1 ? r.map(tr) : [tr(r[0])].concat(r.slice(1)))), "text/csv");
   },
   "csv-stays": () => {
     const rows = [["Nome", "Check-in", "Check-out", "Persone", "Esenti", "Notti", "Notti tassabili", "Pernottamenti", "Pernottamenti tassabili", "Imposta (€)", "Note"]]
       .concat(data.stays.filter(s => touches(s, year)).map(s => { const t = stayTotals(s);
         return [s.name, italian(s.checkIn), italian(s.checkOut), String(s.numPeople), String(s.exemptPeople), String(nights(s)),
                 String(taxableNights(s)), String(t.presenze), String(t.tassabili), amount(t.cents), s.notes]; }));
-    download(`soggiorni_${year}.csv`, csv(rows), "text/csv");
+    download(`soggiorni_${year}.csv`, csv([rows[0].map(tr)].concat(rows.slice(1))), "text/csv");
   },
   "add-rule": () => {
     const last = data.rules.reduce((a, b) => b.fromYear > a.fromYear ? b : a, data.rules[0] || DEFAULT_RULES[1]);
@@ -913,6 +1086,11 @@ const actions = {
 };
 
 document.addEventListener("click", e => {
+  if (e.target.id === "lang") {
+    lang = lang === "en" ? "it" : "en";
+    try { localStorage.setItem(LANG_KEY, lang); } catch (err) {}
+    render(); return;
+  }
   const tabBtn = e.target.closest("#tabs button");
   if (tabBtn) { tab = tabBtn.dataset.tab; render(); window.scrollTo(0, 0); return; }
   const act = e.target.closest("[data-act]");
@@ -931,6 +1109,8 @@ document.addEventListener("input", e => {
   } else if (t.dataset.struct) {
     data.structure[t.dataset.struct] = t.value; save();
     $("title").textContent = data.structure.nomeStruttura || "Tassa di soggiorno";
+    $("title").classList.toggle("raw", !!data.structure.nomeStruttura);
+    translate($("title").parentElement);
   }
 });
 

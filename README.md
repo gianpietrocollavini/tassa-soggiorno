@@ -7,5 +7,7 @@ con Modello 21 per il Comune e riepilogo trimestrale per l'Agenzia delle Entrate
 
 https://gianpietrocollavini.github.io/tassa-soggiorno/ — funziona su iPhone, iPad, Android, Windows e Mac.
 
+In italiano e in inglese (pulsante EN/IT in alto) · *Also available in English (EN button at the top).*
+
 I dati restano sul dispositivo (memoria del browser): online c'è solo l'app vuota.
 Istruzioni in [LEGGIMI.txt](LEGGIMI.txt).
