@@ -1,6 +1,6 @@
 // Tiene una copia dell'app sul dispositivo, così funziona anche senza internet.
 // Cambiare VERSIONE a ogni aggiornamento dei file.
-const VERSIONE = "tassa-soggiorno-1.1";
+const VERSIONE = "tassa-soggiorno-1.2";
 const FILE = ["./", "index.html", "manifest.webmanifest", "icone/icona-32.png", "icone/icona-180.png", "icone/icona-192.png", "icone/icona-512.png"];
 
 self.addEventListener("install", e => {

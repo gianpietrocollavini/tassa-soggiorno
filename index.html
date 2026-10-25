@@ -525,7 +525,8 @@ function download(name, text, type) {
 }
 
 function years() {
-  const set = new Set([new Date().getFullYear(), year]);
+  const now = new Date().getFullYear();
+  const set = new Set([now - 2, now - 1, now, now + 1, year]);
   for (const s of data.stays) { set.add(yearOf(s.checkIn)); set.add(yearOf(addDays(s.checkOut, -1))); }
   return [...set].sort((a, b) => b - a);
 }
@@ -733,7 +734,7 @@ function viewSettings() {
     <div class="card"><h2>Avvertenza</h2><p class="muted" style="margin:0">Questa app è uno strumento di supporto gratuito, fornito così com'è.
       I calcoli seguono le tariffe impostate qui sopra: controlla che corrispondano al regolamento del tuo Comune e verifica sempre
       gli importi prima di versare l'imposta e di consegnare i documenti. Chi usa l'app resta responsabile dei dati inseriti e dei versamenti.</p></div>
-    <p class="muted" style="font-size:13px;text-align:center">Tassa di soggiorno · versione web 1.1 · funziona anche senza internet</p>`;
+    <p class="muted" style="font-size:13px;text-align:center">Tassa di soggiorno · versione web 1.2 · funziona anche senza internet</p>`;
 }
 
 // --- Modulo soggiorno ---------------------------------------------------------------
